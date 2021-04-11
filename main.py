@@ -60,7 +60,7 @@ class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
         self.li = 2
         self.dots = []
         self.spn = 0.01
-        self.maindot = Dot(37.620070, 55.753630)
+        self.maindot = Dot(55.0, 54.0)
         self.get_img()
         self.pushButton.clicked.connect(self.get_img)
         self.pushButton_find.clicked.connect(self.find_pos)
@@ -68,20 +68,31 @@ class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
 
     def clear_dots(self):
         self.dots.clear()
+        self.adres.setText('')
         self.get_img()
 
     def find_pos(self):
-        params = {
-            'apikey': geocode_key,
-            "geocode": self.textEdit.toPlainText(),
-            "format": "json"
-        }
+        if self.textEdit.toPlainText():
+            params = {
+                'apikey': geocode_key,
+                "geocode": self.textEdit.toPlainText(),
+                "format": "json"
+            }
+            response = \
+                requests.get(geocode_server, params=params).json()['response']['GeoObjectCollection']['featureMember'][
+                    0]
+            self.adres.setText(response['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address'][
+                                   'formatted'] + '\n' +
+                               response['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address'][
+                                   'postal_code'] if self.checkBox.isChecked() and 'postal_code' in
+                                                     response['GeoObject']['metaDataProperty']['GeocoderMetaData'][
+                                                         'Address'] else
+                               response['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address']['formatted'])
 
-        self.maindot = Dot(
-            requests.get(geocode_server, params=params).json()['response']['GeoObjectCollection']['featureMember'][0][
-                'GeoObject']['Point']['pos'])
-        self.dots.append(self.maindot.__copy__())
-        self.get_img()
+            self.maindot = Dot(
+                response['GeoObject']['Point']['pos'])
+            self.dots.append(self.maindot.__copy__())
+            self.get_img()
 
     def get_img(self):
         params = {
