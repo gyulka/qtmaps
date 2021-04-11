@@ -40,14 +40,16 @@ class Dot:
 
 class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
     def init2(self):
+        self.comboBox.addItems(l)
         self.li = 2
         self.spn = 0.01
         self.dot = Dot(37.620070, 55.753630)
         self.get_img()
+        self.pushButton.clicked.connect(self.get_img)
 
     def get_img(self):
         params = {
-            'l': l[self.li],
+            'l': self.comboBox.currentText(),
             'll': self.dot.__str__(),
             "spn": f"{self.spn},{self.spn}",
         }
