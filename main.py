@@ -76,24 +76,46 @@ class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
         if self.textEdit.toPlainText():
             params = {
                 'apikey': geocode_key,
-                "geocode": self.textEdit.toPlainText(),
+                "geocode": self.textEdit.toPlainText() if self.textEdit.toPlainText() else self.dots[0].__str__(),
                 "format": "json"
             }
             response = \
                 requests.get(geocode_server, params=params).json()['response']['GeoObjectCollection']['featureMember'][
                     0]
-            self.adres.setText(response['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address'][
-                                   'formatted'] + '\n' +
-                               response['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address'][
-                                   'postal_code'] if self.checkBox.isChecked() and 'postal_code' in
-                                                     response['GeoObject']['metaDataProperty']['GeocoderMetaData'][
-                                                         'Address'] else
-                               response['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address']['formatted'])
 
             self.maindot = Dot(
                 response['GeoObject']['Point']['pos'])
             self.dots.append(self.maindot.__copy__())
+        self.adres.setText('')
+        self.textEdit.setText('')
+
+        for dot in self.dots:
+            params = {
+                'apikey': geocode_key,
+                "geocode": dot.__str__(),
+                "format": "json"
+            }
+            response = \
+                requests.get(geocode_server, params=params).json()['response']['GeoObjectCollection']['featureMember'][
+                    0]
+            self.adres.setText(
+                self.adres.toPlainText() + '\n' + '-' * 8 + "\n" +
+                response['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address'][
+                    'formatted'] + '\n' +
+                response['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address'][
+                    'postal_code'] if self.checkBox.isChecked() and 'postal_code' in
+                                      response['GeoObject']['metaDataProperty']['GeocoderMetaData'][
+                                          'Address'] else
+                self.adres.toPlainText() + "\n" + '-' * 8 + "\n" +
+                response['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address'][
+                    'formatted'])
             self.get_img()
+
+    def mousePressEvent(self, event):
+        if (event.button() == Qt.LeftButton):
+            pos = (event.x(), event.y())
+            if 0<=event[0]-10<=600 and 0<=pos[1]-10<=450:
+
 
     def get_img(self):
         params = {
