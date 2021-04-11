@@ -65,6 +65,7 @@ class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
         self.pushButton.clicked.connect(self.get_img)
         self.pushButton_find.clicked.connect(self.find_pos)
         self.pushButton_clear.clicked.connect(self.clear_dots)
+        self.checkBox.clicked.connect(self.find_pos)
 
     def clear_dots(self):
         self.dots.clear()
