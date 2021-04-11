@@ -111,10 +111,10 @@ class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
                     'formatted'])
             self.get_img()
 
-    def mousePressEvent(self, event):
-        if (event.button() == Qt.LeftButton):
-            pos = (event.x(), event.y())
-            if 0<=event[0]-10<=600 and 0<=pos[1]-10<=450:
+    # def mousePressEvent(self, event):
+    #     if (event.button() == Qt.LeftButton):
+    #         pos = (event.x(), event.y())
+    #         if 0<=event[0]-10<=600 and 0<=pos[1]-10<=450:
 
 
     def get_img(self):
