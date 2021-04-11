@@ -1,3 +1,7 @@
+'''
+при проверке pgup/pgdn проверьте что не изменяете текст или комбобокс
+'''
+
 import sys
 
 import requests
@@ -62,7 +66,7 @@ class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
         self.pushButton_find.clicked.connect(self.find_pos)
         self.pushButton_clear.clicked.connect(self.clear_dots)
 
-    def clear_dost(self):
+    def clear_dots(self):
         self.dots.clear()
         self.get_img()
 
