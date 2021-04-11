@@ -22,8 +22,11 @@ l = ['map', 'sat', 'sat,skl']
 
 
 class Dot:
-    def __init__(self, a, b):
-        self.a, self.b = a, b
+    def __init__(self, *args):
+        if args[0].__class__.__name__ == 'float':
+            self.a, self.b = args[:2]
+        else:
+            self.a, self.b = map(float, args[0].split())
 
     def __str__(self):
         return f'{self.a},{self.b}'
@@ -37,21 +40,51 @@ class Dot:
             self.a = (self.b + 180) % 180
         return self
 
+    def pt(self):
+        return f'{self.a},{self.b},pmwts'
+
+    def __repr__(self):
+        return f'{self.a} {self.b}'
+
+    def __copy__(self):
+        return Dot(self.__repr__())
+
 
 class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
     def init2(self):
         self.comboBox.addItems(l)
         self.li = 2
+        self.dots = []
         self.spn = 0.01
-        self.dot = Dot(37.620070, 55.753630)
+        self.maindot = Dot(37.620070, 55.753630)
         self.get_img()
         self.pushButton.clicked.connect(self.get_img)
+        self.pushButton_find.clicked.connect(self.find_pos)
+        self.pushButton_clear.clicked.connect(self.clear_dots)
+
+    def clear_dost(self):
+        self.dots.clear()
+        self.get_img()
+
+    def find_pos(self):
+        params = {
+            'apikey': geocode_key,
+            "geocode": self.textEdit.toPlainText(),
+            "format": "json"
+        }
+
+        self.maindot = Dot(
+            requests.get(geocode_server, params=params).json()['response']['GeoObjectCollection']['featureMember'][0][
+                'GeoObject']['Point']['pos'])
+        self.dots.append(self.maindot.__copy__())
+        self.get_img()
 
     def get_img(self):
         params = {
             'l': self.comboBox.currentText(),
-            'll': self.dot.__str__(),
+            'll': self.maindot.__str__(),
             "spn": f"{self.spn},{self.spn}",
+            'pt': '~'.join(map(lambda x: x.pt(), self.dots))
         }
         open('img.png', 'wb').write(requests.get(static_server, params=params).content)
         self.img.setPixmap(QtGui.QPixmap('img.png'))
@@ -64,13 +97,13 @@ class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
             if self.spn / 2 > 0.00175:
                 self.spn /= 2
         elif event.key() == Qt.Key_Left:
-            self.dot += [-self.spn * 2, 0]
+            self.maindot += [-self.spn * 2, 0]
         elif event.key() == Qt.Key_Right:
-            self.dot += [self.spn * 2, 0]
+            self.maindot += [self.spn * 2, 0]
         elif event.key() == Qt.Key_Up:
-            self.dot += [0, self.spn]
+            self.maindot += [0, self.spn]
         elif event.key() == Qt.Key_Down:
-            self.dot += [0, -self.spn]
+            self.maindot += [0, -self.spn]
         self.get_img()
 
 
