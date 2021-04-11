@@ -4,6 +4,7 @@ import requests
 from PyQt5 import QtGui
 from PyQt5 import QtWidgets
 from PyQt5 import uic
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 
 Ui_MainWindown, _ = uic.loadUiType('uis/untitled.ui')
@@ -27,6 +28,15 @@ class Dot:
     def __str__(self):
         return f'{self.a},{self.b}'
 
+    def __iadd__(self, other):
+        self.a += other[0]
+        self.b += other[1]
+        if not (0 <= self.a <= 180):
+            self.a = (self.a + 180) % 180
+        if not (0 <= self.b <= 180):
+            self.a = (self.b + 180) % 180
+        return self
+
 
 class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
     def init2(self):
@@ -43,6 +53,23 @@ class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
         }
         open('img.png', 'wb').write(requests.get(static_server, params=params).content)
         self.img.setPixmap(QtGui.QPixmap('img.png'))
+
+    def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
+        if event.key() == Qt.Key_PageUp:
+            if self.spn * 2 < 2:
+                self.spn *= 2
+        elif event.key() == Qt.Key_PageDown:
+            if self.spn / 2 > 0.00175:
+                self.spn /= 2
+        elif event.key() == Qt.Key_Left:
+            self.dot += [-self.spn * 2, 0]
+        elif event.key() == Qt.Key_Right:
+            self.dot += [self.spn * 2, 0]
+        elif event.key() == Qt.Key_Up:
+            self.dot += [0, self.spn]
+        elif event.key() == Qt.Key_Down:
+            self.dot += [0, -self.spn]
+        self.get_img()
 
 
 def except_hook(cls, exception, traceback):
