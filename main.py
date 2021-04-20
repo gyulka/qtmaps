@@ -137,74 +137,56 @@ class Ui_MainWindow(Ui_MainWindown, QtWidgets.QMainWindow):
                 s = Dot(a, b)
                 self.dots.append(s)
                 self.find_pos()
-            # if self.lonlat_distance() <= 50:
                 search_api_server = "https://search-maps.yandex.ru/v1/"
-                api_key = "..."
+                api_key = "7f712159-bb4c-49b3-b690-8108fe1b2898"
 
-                address_ll = str(self.maindot)
-
+                address_ll = str(s)
+                params = {
+                    'apikey': geocode_key,
+                    "geocode": address_ll,
+                    "format": "json"
+                }
+                response = \
+                    requests.get(geocode_server, params=params).json()['response']['GeoObjectCollection']
+                variants = response[
+                    "featureMember"]
+                address = variants[0]['GeoObject']['metaDataProperty'][
+                    'GeocoderMetaData']['text']
                 search_params = {
                     "apikey": api_key,
+                    "text": address,
                     "lang": "ru_RU",
                     "ll": address_ll,
                     "type": "biz"
                 }
-                geocode = str(s)
+
+
                 response = requests.get(search_api_server, params=search_params)
-                # Преобразуем ответ в json-объект
                 json_response = response.json()
-
-                geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
-
-                geocoder_params = {
-                    "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
-                    "geocode": geocode,
-                    "format": "json",
-                }
-                print(json_response)
-                organization = response.json()["features"]
+                # Получаем первую найденную организацию.
+                organization = json_response["features"][0]
                 # Название организации.
                 org_name = organization["properties"]["CompanyMetaData"]["name"]
                 # Адрес организации.
                 org_address = organization["properties"]["CompanyMetaData"]["address"]
-
-                # Получаем координаты ответа.
                 point = organization["geometry"]["coordinates"]
-                org_point = "{0},{1}".format(point[0], point[1])
-                delta = "0.005"
-
-                # Собираем параметры для запроса к StaticMapsAPI:
-                map_params = {
-                    # позиционируем карту центром на наш исходный адрес
-                    "ll": address_ll,
-                    "spn": ",".join([delta, delta]),
-                    "l": "map",
-                    # добавим точку, чтобы указать найденную аптеку
-                    "pt": "{0},pm2dgl".format(org_point)
-                }
-
-                map_api_server = "http://static-maps.yandex.ru/1.x/"
-                # ... и выполняем запрос
-                response = requests.get(map_api_server, params=map_params)
-
-                name = self.dots[-1]["properties"]["CompanyMetaData"]["name"]
-                print(name)
-                self.pt = self.maindot + ',pm2rdl'
-                self.show_message(
-                    msg=name,
-                    style='color: white; background-color: green; '
-                          'font-size: 16pt;')
-                self.update_pixmap()
-            else:
-                print('Близкой организации не найдено')
+                s = self.lonlat_distance(point)
+                if s <= 50:
+                    self.adres.setText(
+                        self.adres.toPlainText() + '\n' + '-' * 8 + "\n" + org_name)
+                else:
+                    self.adres.setText(
+                        self.adres.toPlainText() + '\n' + '-' * 8 + "\n" + 'Организаций не найдено')
 
 
-    def lonlat_distance(self):
+                self.dots.pop(-1)
+
+    def lonlat_distance(self, point):
         """Расстояние между точками"""
         degree_to_meters_factor = 111 * 1000  # 111 километров в метрах
-        print(self.dots)
+
         a_lon, a_lat = self.dots[-1].a, self.dots[-1].b
-        b_lon, b_lat = self.maindot.a, self.maindot.b
+        b_lon, b_lat = point
 
         # Берем среднюю по широте точку и считаем коэффициент для нее.
         radians_lattitude = math.radians((a_lat + b_lat) / 2.)
